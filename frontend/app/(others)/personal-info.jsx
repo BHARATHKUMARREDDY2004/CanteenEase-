@@ -1,10 +1,12 @@
-import { SafeAreaView, Text, View, Image, TextInput, Alert, ActivityIndicator } from "react-native";
+import { SafeAreaView, Text, View, Image, TextInput, Alert, TouchableOpacity } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
+import { Loader } from "../../components"
 import { useGlobalContext } from "../../context/GlobalProvider";
-import { updateUserName, updateUserNameInAuth } from "../../lib/appwrite";  // Add avatar import if necessary
+import { updateUserName, updateUserNameInAuth } from "../../lib/appwrite";
+import { router } from "expo-router"; // Import router from expo-router
 
 const PersonalInfo = () => {
-  const { user, setUser } = useGlobalContext();  // Access and set global user state
+  const { user, setUser } = useGlobalContext(); // Access and set global user state
   const [name, setName] = useState(user?.username);
   const [isLoading, setIsLoading] = useState(false);
   const [debounceTimeout, setDebounceTimeout] = useState(null);
@@ -19,42 +21,43 @@ const PersonalInfo = () => {
   };
 
   // Debounced function to handle name and avatar change
-  const handleNameChangeDebounced = useCallback((newName) => {
-    if (debounceTimeout) {
-      clearTimeout(debounceTimeout);
-    }
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        setIsLoading(true);
-
-        // Capitalize the first letter of the new name
-        const capitalizedNewName = capitalizeFirstLetter(newName);
-
-        // Update the name in the Appwrite authentication system (Auth)
-        await updateUserNameInAuth(capitalizedNewName);
-
-        // Call the updateUserName function to update the user's name and avatar in the database
-        const updatedUser = await updateUserName(user?.$id, capitalizedNewName);
-
-        // Update global user state to reflect changes (username and avatar)
-        setUser((prevUser) => ({
-          ...prevUser,
-          username: updatedUser.username,
-          avatar: updatedUser.avatar,  // Ensure the avatar is updated with the new initials
-        }));
-
-        Alert.alert("Success", "Your name and avatar have been updated successfully.");
-      } catch (error) {
-        console.log(error);
-        Alert.alert("Error", "Failed to update the name and avatar.");
-      } finally {
-        setIsLoading(false);
+  const handleNameChangeDebounced = useCallback(
+    (newName) => {
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout);
       }
-    }, 500); // Debounce for 500ms
+      const timeoutId = setTimeout(async () => {
+        setIsLoading(true);
+        try {
+          // Capitalize the first letter of the new name
+          const capitalizedNewName = capitalizeFirstLetter(newName);
 
-    setDebounceTimeout(timeoutId);
-  }, [debounceTimeout, user?.$id, setUser]);
+          // Update the name in the Appwrite authentication system (Auth)
+          await updateUserNameInAuth(capitalizedNewName);
+
+          // Call the updateUserName function to update the user's name and avatar in the database
+          const updatedUser = await updateUserName(user?.$id, capitalizedNewName);
+
+          // Update global user state to reflect changes (username and avatar)
+          setUser((prevUser) => ({
+            ...prevUser,
+            username: updatedUser.username,
+            avatar: updatedUser.avatar, // Ensure the avatar is updated with the new initials
+          }));
+
+          Alert.alert("Success", "Your name and avatar have been updated successfully.");
+        } catch (error) {
+          console.log(error);
+          Alert.alert("Error", "Failed to update the name and avatar.");
+        }finally{
+          setIsLoading(false);
+        }
+      }, 500); // Debounce for 500ms
+
+      setDebounceTimeout(timeoutId);
+    },
+    [debounceTimeout, user?.$id, setUser]
+  );
 
   // Handle the name change on blur (when user leaves the input field)
   const handleNameBlur = () => {
@@ -63,18 +66,24 @@ const PersonalInfo = () => {
     }
   };
 
+  // Handle navigation to the Change Email screen
+  const handleEmailChangePress = () => {
+    router.push({
+      pathname: "/change-email", // Path to the Change Email screen
+    });
+  };
+
   return (
-    <SafeAreaView className="px-4 pt-9 bg-primary flex-1">
+    <SafeAreaView className="flex-1 bg-primary px-2 pt-9">
       {/* Header */}
-      <Text className="text-2xl font-semibold text-white px-2 my-2">
-        Personal Info
-      </Text>
+      <Text className="text-2xl font-semibold text-white my-2">Personal Info</Text>
+      <Loader isLoading={isLoading} />
 
       {/* Container for centering the image */}
       <View className="flex-1 justify-start items-center mt-4">
         <View className="w-16 h-16 border border-secondary rounded-lg justify-center items-center">
           <Image
-            source={{ uri: user?.avatar }}  // Avatar dynamically updates with the new initials
+            source={{ uri: user?.avatar }} // Avatar dynamically updates with the new initials
             className="w-[90%] h-[90%] rounded-lg"
             resizeMode="cover"
           />
@@ -84,19 +93,24 @@ const PersonalInfo = () => {
         <View className="mt-10 w-full">
           <View className="mb-4">
             <Text className="text-gray-200 mb-1 text-base">Name</Text>
-            <View className="bg-tertiary rounded-lg border border-gray-100 p-3">
+            <View className="bg-tertiary rounded-lg border-[.5px] border-gray-100 p-3">
               <TextInput
                 value={name}
                 onChangeText={setName}
                 className="text-white text-lg"
-                editable={!isLoading}
                 onBlur={handleNameBlur}
               />
             </View>
           </View>
-
-          {/* Show loading indicator when updating */}
-          {isLoading && <ActivityIndicator size="large" color="#FF9C01" />}
+          <View className="mb-4">
+            <Text className="text-gray-200 mb-1 text-base">Email</Text>
+            <View className="bg-tertiary rounded-lg border-[.5px] border-gray-100 p-3 flex-row justify-between items-center">
+              <Text className="text-white text-lg">{user?.email}</Text>
+              <TouchableOpacity onPress={handleEmailChangePress}>
+                <Text className="text-secondary text-">CHANGE</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </View>
     </SafeAreaView>

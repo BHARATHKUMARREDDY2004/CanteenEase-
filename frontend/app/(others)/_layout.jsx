@@ -18,6 +18,7 @@ const OthersLayout = () => {
         <Stack.Screen name="about" options={{ headerShown: false }} />
         <Stack.Screen name="feedback" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="change-email" options={{ headerShown: false }} />
       </Stack>
 
       <StatusBar backgroundColor="#161622" style="light" />

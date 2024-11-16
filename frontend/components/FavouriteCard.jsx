@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import AnimatedHeart from "./AnimatedHeart";
+import { images } from "../constants";
 
-const FavouriteCard = ({ item, onPress }) => {
+const FavouriteCard = ({ item , onPress }) => {
   // Convert price and quantity to numbers, using 0 as fallback if not valid
   return (
     <TouchableOpacity onPress={() => onPress(item)}>
@@ -10,7 +11,9 @@ const FavouriteCard = ({ item, onPress }) => {
         <View className="flex-row justify-start items-center">
           {/* Food Image */}
           <Image
-            source={{ uri: item.thumbnail }}
+            source={
+              item.thumbnail ? { uri: item.thumbnail } : images.noImageAvailable
+            }
             className="h-[80] w-[20%] m-1 rounded-xl"
             resizeMode="cover"
           />
@@ -27,7 +30,7 @@ const FavouriteCard = ({ item, onPress }) => {
           </Text>
 
           <View>
-            <AnimatedHeart />
+            <AnimatedHeart foodItemId={item.$id} />
           </View>
         </View>
       </View>

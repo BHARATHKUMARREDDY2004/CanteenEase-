@@ -16,6 +16,8 @@ export const appwriteConfig = {
   userCollectionId: "67166c62000eede9e12b",
   foodItemsCollectionID: "6725e5ce0009481f53f9",
   favouritesCollectionID: "672b7ca10021ba932221",
+  cartCollectionID: "6735b826003b01c62107",
+  feedbackCollectionID: "67388422001b7fca00f2",
 };
 
 const client = new Client();
@@ -29,7 +31,6 @@ const account = new Account(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
 const databases = new Databases(client);
-
 // --------------------------------------------------------------------------------------
 // User Account Functions
 // --------------------------------------------------------------------------------------
@@ -46,7 +47,7 @@ export async function createUser(email, password, username) {
     if (!newAccount) throw new Error("Account creation failed.");
 
     // Create avatar using initials
-    const avatarUrl = avatars.getInitials(username);
+    const avatarUrl = avatars.getInitials(username[0]);
     
     // Sign in after registration
     await signIn(email, password);
@@ -132,105 +133,6 @@ export async function signOut() {
 }
 
 // --------------------------------------------------------------------------------------
-// Favourite Management Functions
-// --------------------------------------------------------------------------------------
-
-// Fetch the user's favourites by userId
-// Fetch the user's favourites by userId
-export async function fetchFavourites(userId) {
-  try {
-    // Fetch the user's favourite document from the favourites collection
-    const favouriteItems = await databases.listDocuments(
-      appwriteConfig.databaseId,
-      appwriteConfig.favouritesCollectionID,
-      [Query.equal('$id', userId)]  // Querying by userId
-    );
-
-    if (favouriteItems.documents.length === 0) {
-      console.log("No favourites found for this user.");
-      return [];
-    }
-
-    // Now fetch the details of each food item in the favourites array
-    const foodItemDetails = await Promise.all(
-      favouriteItems.documents[0].favourites.map(async (foodItemId) => {
-        return await fetchFoodItemDetails(foodItemId); // Fetch the full details of the food item
-      })
-    );
-
-    return foodItemDetails;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
-
-
-// Add a food item to the user's favourites
-export async function addFavourite(userId, foodItemId) {
-  try {
-    const favouriteDoc = await fetchFavourites(userId);
-
-    if (!favouriteDoc) throw new Error("No favourite document found.");
-
-    // Add the new food item ID to the favourites array
-    const updatedFavourites = [...favouriteDoc.favourites, foodItemId];
-
-    // Update the document in the database
-    await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.favouritesCollectionID,
-      favouriteDoc.$id,
-      { favourites: updatedFavourites }
-    );
-
-    console.log("Food item added to favourites.");
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
-
-// Remove a food item from the user's favourites
-export async function removeFavourite(userId, foodItemId) {
-  try {
-    const favouriteDoc = await fetchFavourites(userId);
-
-    if (!favouriteDoc) throw new Error("No favourite document found.");
-
-    // Filter out the food item ID to remove
-    const updatedFavourites = favouriteDoc.favourites.filter(
-      (id) => id !== foodItemId
-    );
-
-    // Update the document in the database
-    await databases.updateDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.favouritesCollectionID,
-      favouriteDoc.$id,
-      { favourites: updatedFavourites }
-    );
-
-    console.log("Food item removed from favourites.");
-  } catch (error) {
-    throw new Error(error.message);
-  }
-}
-
-// Fetch the details of a food item by ID
-export async function fetchFoodItemDetails(foodItemId) {
-  try {
-    const foodItem = await databases.getDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.foodItemsCollectionID,
-      foodItemId
-    );
-    return foodItem;
-  } catch (error) {
-    console.log("Error fetching food item details:", error.message);
-  }
-}
-
-
-// --------------------------------------------------------------------------------------
 // Update User Functions
 // --------------------------------------------------------------------------------------
 
@@ -272,6 +174,58 @@ export async function updateUserName(userId, newName) {
 }
 
 
+// Function to update user's email
+export async function updateUserEmail(newEmail, password, userId) {
+  try {
+    // Update the email in authentication (Appwrite Auth)
+    await account.updateEmail(newEmail, password);
+
+    // Update the email in the users collection (Appwrite Database)
+        const updatedEmail = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      userId,
+      {
+        email: newEmail, // Only the first letter as avatar
+      }
+    );
+
+    return { success: true, message: "Email updated successfully in both Auth and Users collection" };
+  } catch (error) {
+    console.error("Error updating email:", error);
+    throw new Error(error.message);
+  }
+}
+
+// Function to update user's password
+export async function updateUserPassword(newPassword, oldPassword) {
+  try {
+    await account.updatePassword(newPassword, oldPassword);
+    return { success: true, message: "Password updated successfully" };
+  } catch (error) {
+    console.error("Error updating password:", error);
+    throw new Error(error.message);
+  }
+}
+
+// Function to update both email and password
+export async function updateUserCredentials(newEmail, newPassword, currentPassword, userId) {
+  try {
+    // Update email first
+    await updateUserEmail(newEmail, currentPassword, userId);
+    
+    // Then update password
+    await updateUserPassword(newPassword, currentPassword);
+    
+    return { success: true, message: "Email and password updated successfully in Auth and Users collection" };
+  } catch (error) {
+    console.error("Error updating credentials:", error);
+    throw new Error(error.message);
+  }
+}
+
+
+
 
 // --------------------------------------------------------------------------------------
 // Fetching Food Items Functions
@@ -288,6 +242,112 @@ export async function fetchFoodItems() {
     throw new Error(error.message);
   }
 }
+
+
+// --------------------------------------------------------------------------------------
+// Favourite Management Functions
+// --------------------------------------------------------------------------------------
+
+// Fetch the user's favourites by userId
+export async function fetchFavourites(userId) {
+  try {
+    // Fetch the user's favourite document from the favourites collection
+    const favouriteItems = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.favouritesCollectionID,
+      [Query.equal('$id', userId)]  // Querying by userId
+    );
+
+    if (favouriteItems.documents.length === 0) {
+      console.log("No favourites found for this user.");
+      return [];
+    }
+
+    // Now fetch the details of each food item in the favourites array
+    const foodItemDetails = await Promise.all(
+      favouriteItems.documents[0].favourites.map(async (foodItemId) => {
+        return await fetchFoodItemDetails(foodItemId); // Fetch the full details of the food item
+      })
+    );
+
+    return foodItemDetails;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+
+// Add a food item to the user's favourites
+export async function addFavourite(userId, foodItemId) {
+  try {
+    const favouriteDoc = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.favouritesCollectionID,
+      [Query.equal('$id', userId)]  // Querying by userId
+    );
+
+    if (!favouriteDoc) throw new Error("No favourite document found.");
+
+    // Add the new food item ID to the favourites array
+    const updatedFavourites = [...favouriteDoc.documents[0].favourites, foodItemId];
+
+    // Update the document in the database
+    await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.favouritesCollectionID,
+      userId,
+      { favourites: updatedFavourites }
+    );
+
+    console.log("Food item added to favourites.");
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+// Remove a food item from the user's favourites
+export async function removeFavourite(userId, foodItemId) {
+  try {
+    const favouriteDoc = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.favouritesCollectionID,
+      [Query.equal('$id', userId)]  // Querying by userId
+    );
+
+    if (!favouriteDoc) throw new Error("No favourite document found.");
+
+    // Filter out the food item ID to remove
+    const updatedFavourites = favouriteDoc.documents[0].favourites.filter(
+      (id) => id !== foodItemId
+    );
+
+    // Update the document in the database
+    await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.favouritesCollectionID,
+      userId,
+      { favourites: updatedFavourites }
+    );
+    console.log("Food item removed from favourites.");
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+// Fetch the details of a food item by ID
+export async function fetchFoodItemDetails(foodItemId) {
+  try {
+    const foodItem = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.foodItemsCollectionID,
+      foodItemId
+    );
+    return foodItem;
+  } catch (error) {
+    console.log("Error fetching food item details:", error.message);
+  }
+}
+
 
 
 // --------------------------------------------------------------------------------------
@@ -341,6 +401,127 @@ export async function getFilePreview(fileId, type) {
   }
 }
 
+
+// --------------------------------------------------------------------------------------
+// Cart Management Functions
+// --------------------------------------------------------------------------------------
+
+export async function addToCart(userId, itemId, price, size, qty, totalPrice, addons = []) {
+  try {
+    // Prepare the addons array with their prices
+    const addonNames = addons.map((addon) => addon.addon);
+    const addonPrices = addons.map((addon) => addon.price);
+
+    console.log(addonNames);
+    console.log(addonPrices)
+    // Create a new cart item document
+    const cartItem = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.cartCollectionID,
+      ID.unique(),
+      {
+        userId: userId,
+        itemId: itemId,
+        selectedSizePrice: price,          // Price of the item (without addons)
+        selectedSize: size,            // Size of the item (e.g., 'regular', 'large', etc.)
+        qty: qty,              // Quantity of the item
+        totalPrice: totalPrice, // Total price (including addons)
+        selectedAddons: addonNames,     // Array of addon names
+        selectedAddonPrices: addonPrices // Array of addon prices
+      }
+    );
+
+    return cartItem;
+  } catch (error) {
+    throw new Error(`Failed to add item to cart: ${error.message}`);
+  }
+}
+
+
+export async function deleteCartItem(cartItemId) {
+  try {
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.cartCollectionID,
+      cartItemId
+    );
+    console.log("Cart item deleted successfully.");
+  } catch (error) {
+    throw new Error(`Failed to delete cart item: ${error.message}`);
+  }
+}
+
+export async function fetchCartItems(userId) {
+  try {
+    // Fetch the user's cart items from the cart collection
+    const cartItems = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.cartCollectionID,
+      [Query.equal('userId', userId)]  // Querying by userId
+    );
+
+    // console.log("Fetched Cart Items:", cartItems); // Log cartItems
+
+    if (cartItems.documents.length === 0) {
+      console.log("No cart items found for this user.");
+    }
+
+    // Now fetch the details of each food item in the cart
+    const foodItemDetails = await Promise.all(
+      cartItems.documents.map(async (cartItem) => {
+        return await fetchFoodItemDetails(cartItem.itemId); // Fetch the full details of the food item
+      })
+    );
+
+    // console.log("Fetched Food Item Details:", foodItemDetails); // Log foodItemDetails
+
+    return [foodItemDetails, cartItems.documents];
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+
+// --------------------------------------------------------------------------------------
+// Feedback Management Functions
+// --------------------------------------------------------------------------------------
+
+export async function sendFeedback(userId, feedback){
+  try {
+    const result = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.feedbackCollectionID,
+      ID.unique(), {
+      userId: userId,
+      Feedback: feedback,
+    });
+
+    console.log("Feedback inserted successfully:", result);
+    return result;
+  } catch (error) {
+    console.error("Error inserting feedback:", error);
+    throw error; // Propagate error for handling in UI
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // --------------------------------------------------------------------------------------
 // Video Post Management Functions
 // --------------------------------------------------------------------------------------
@@ -387,4 +568,3 @@ export async function getAllPosts() {
 }
 
 // --------------------------------------------------------------------------------------
-

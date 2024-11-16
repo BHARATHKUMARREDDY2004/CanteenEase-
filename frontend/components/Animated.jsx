@@ -3,14 +3,14 @@ import { TouchableWithoutFeedback, Animated, View } from "react-native";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { useGlobalContext } from "../context/GlobalProvider";
 
-const AnimatedHeart = ({ foodItemId }) => {
+const AnimatedHeart = ({ item }) => {
   const { favourites, handleAddFavourite, handleRemoveFavourite } =
     useGlobalContext();
 
   // Check if the food item is already in the global favourites list
   const isFavorite = useMemo(
-    () => favourites.some((item) => item.$id === foodItemId),
-    [favourites, foodItemId]
+    () => favourites.some((foodItem) => foodItem.$id === item.$id),
+    [favourites, item.$id]
   );
 
   const scaleValue = useRef(new Animated.Value(1)).current;
@@ -34,13 +34,13 @@ const AnimatedHeart = ({ foodItemId }) => {
     animateHeart();
 
     if (isFavorite) {
-      handleRemoveFavourite(foodItemId);
+      handleRemoveFavourite(item);
     } else {
-      handleAddFavourite(foodItemId);
+      handleAddFavourite(item);
     }
   }, [
     isFavorite,
-    foodItemId,
+    item,
     handleAddFavourite,
     handleRemoveFavourite,
     animateHeart,
@@ -62,5 +62,3 @@ const AnimatedHeart = ({ foodItemId }) => {
 };
 
 export default AnimatedHeart;
-
-

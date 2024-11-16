@@ -1,12 +1,19 @@
 import { SafeAreaView, Text, View, TextInput, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { CustomButton } from '../../components';
+import { sendFeedback } from "../../lib/appwrite";
+import { useGlobalContext } from '../../context/GlobalProvider';
 
 const Feedback = () => {
+  const { user } = useGlobalContext();
   const [feedback, setFeedback] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFeedbackSubmit = async () => {
+    if(!user){
+      return
+    }
+    
     if (feedback.trim() === '') {
       Alert.alert('Error', 'Please provide your feedback.');
       return;
@@ -17,7 +24,7 @@ const Feedback = () => {
     try {
       // API call to submit feedback
       // Actual feedback submission logic
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await sendFeedback(user?.$id, feedback);
 
       Alert.alert('Thank you!', 'Your feedback has been submitted.');
       setFeedback(''); // Clear the feedback input
