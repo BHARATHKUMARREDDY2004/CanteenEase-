@@ -92,22 +92,22 @@ const PersonalInfo = () => {
         {/* Name Input Field */}
         <View className="mt-10 w-full">
           <View className="mb-4">
-            <Text className="text-gray-200 mb-1 text-base">Name</Text>
+            <Text className="text-gray-200 mb-1 text-base font-pregular">Name</Text>
             <View className="bg-tertiary rounded-lg border-[.5px] border-gray-100 p-3">
               <TextInput
                 value={name}
                 onChangeText={setName}
-                className="text-white text-lg"
+                className="text-white text-lg font-pregular"
                 onBlur={handleNameBlur}
               />
             </View>
           </View>
           <View className="mb-4">
-            <Text className="text-gray-200 mb-1 text-base">Email</Text>
+            <Text className="text-gray-200 mb-1 text-base font-pregular">Email</Text>
             <View className="bg-tertiary rounded-lg border-[.5px] border-gray-100 p-3 flex-row justify-between items-center">
-              <Text className="text-white text-lg">{user?.email}</Text>
+              <Text className="text-white text-lg font-pregular">{user?.email}</Text>
               <TouchableOpacity onPress={handleEmailChangePress}>
-                <Text className="text-secondary text-">CHANGE</Text>
+                <Text className="text-secondary font-pregular">CHANGE</Text>
               </TouchableOpacity>
             </View>
           </View>

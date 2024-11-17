@@ -79,19 +79,19 @@ const ChangeEmail = () => {
 
       {step === 1 && (
         <View>
-          <Text className="text-gray-200 mb-2">New Email</Text>
+          <Text className="text-gray-200 mb-2 font-pregular">New Email</Text>
           <TextInput
-            className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100"
+            className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100 font-pregular"
             placeholder="Enter new Gmail address"
             placeholderTextColor="#606470"
             value={newEmail}
             onChangeText={setNewEmail}
           />
 
-          <Text className="text-gray-200 mb-2">New Password</Text>
+          <Text className="text-gray-200 mb-2 font-pregular">New Password</Text>
           <View className="relative">
             <TextInput
-              className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100"
+              className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100 font-pregular"
               placeholder="Enter new password"
               placeholderTextColor="#606470"
               value={newPassword}
@@ -110,10 +110,10 @@ const ChangeEmail = () => {
             </TouchableOpacity>
           </View>
 
-          <Text className="text-gray-200 mb-2">Current Password</Text>
+          <Text className="text-gray-200 mb-2 font-pregular">Current Password</Text>
           <View className="relative">
             <TextInput
-              className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100"
+              className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100 font-pregular"
               placeholder="Enter current password"
               placeholderTextColor="#606470"
               value={currentPassword}
@@ -143,9 +143,9 @@ const ChangeEmail = () => {
 
       {step === 2 && (
         <View>
-          <Text className="text-gray-200 mb-2">Enter OTP</Text>
+          <Text className="text-gray-200 mb-2 font-pregular">Enter OTP</Text>
           <TextInput
-            className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100"
+            className="bg-tertiary rounded-lg text-white text-lg p-3 mb-4 border-[.5px] border-gray-100 font-pregular"
             placeholder="Enter 6-digit OTP"
             placeholderTextColor="#606470"
             value={otp}
