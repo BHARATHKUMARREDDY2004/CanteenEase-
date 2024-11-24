@@ -11,7 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "scheme": "canteen_ease",
+    "scheme": "canteenease",
     "assetBundlePatterns": [
       "**/*"
     ],

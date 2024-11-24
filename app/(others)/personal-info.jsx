@@ -103,14 +103,21 @@ const PersonalInfo = () => {
             </View>
           </View>
           <View className="mb-4">
-            <Text className="text-gray-200 mb-1 text-base font-pregular">Email</Text>
-            <View className="bg-tertiary rounded-lg border-[.5px] border-gray-100 p-3 flex-row justify-between items-center">
-              <Text className="text-white text-lg font-pregular">{user?.email}</Text>
-              <TouchableOpacity onPress={handleEmailChangePress}>
-                <Text className="text-secondary font-pregular">CHANGE</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+  <Text className="text-gray-200 mb-1 text-base font-pregular">Email</Text>
+  <View className="bg-tertiary rounded-lg border-[.5px] border-gray-100 p-3 flex-row items-center">
+    <Text 
+      className="text-white text-lg font-pregular flex-1" 
+      numberOfLines={1} 
+      ellipsizeMode="tail"
+    >
+      {user?.email}
+    </Text>
+    <TouchableOpacity onPress={handleEmailChangePress}>
+      <Text className="text-secondary font-pregular">CHANGE</Text>
+    </TouchableOpacity>
+  </View>
+</View>
+
         </View>
       </View>
     </SafeAreaView>
