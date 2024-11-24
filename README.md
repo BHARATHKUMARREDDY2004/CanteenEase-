@@ -63,11 +63,6 @@ CanteenEase/
    npm install -g expo-cli
    ```
 
-2. **Firebase Setup**:
-   - Create a Firebase project.
-   - Enable Authentication and Firestore Database.
-   - Add your Firebase configuration to the project.
-
 ### Coding Standards
 
 - Follow **React Native** best practices.
